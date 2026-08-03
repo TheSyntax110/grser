@@ -13,6 +13,7 @@ import CodeEditor from "@/components/CodeEditor";
 import FilePreview from "@/components/FilePreview";
 import LivePreview from "@/components/LivePreview";
 import MemoryPanel from "@/components/MemoryPanel";
+import SkillsUploadButton from "@/components/SkillsUploadButton";
 import { useAetherStore } from "@/lib/store";
 
 type PanelMode = "chat" | "editor" | "preview" | "live";
@@ -74,6 +75,7 @@ export default function ChatPage() {
             <Brain size={14} />
             Hafıza
           </button>
+          <SkillsUploadButton onSkillsChanged={refreshDisk} />
           <button
             onClick={() => setTerminalOpen((v) => !v)}
             className={`text-xs ${terminalOpen ? "btn-plasma" : "btn-ghost"}`}

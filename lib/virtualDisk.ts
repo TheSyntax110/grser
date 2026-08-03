@@ -109,6 +109,26 @@ export function diskRootForSession(sessionId: string): string {
   return sessionRoot(sessionId);
 }
 
+export function unlinkFile(sessionId: string, relPath: string): void {
+  const root = sessionRoot(sessionId);
+  const target = resolveSafe(root, relPath);
+  fs.rmSync(target, { force: true });
+  // Remove empty parent directories up to root
+  let dir = path.dirname(target);
+  while (dir !== root) {
+    try {
+      if (fs.readdirSync(dir).length === 0) {
+        fs.rmdirSync(dir);
+        dir = path.dirname(dir);
+      } else {
+        break;
+      }
+    } catch {
+      break;
+    }
+  }
+}
+
 export function resetDisk(sessionId: string): void {
   const root = sessionRoot(sessionId);
   fs.rmSync(root, { recursive: true, force: true });

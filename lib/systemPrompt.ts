@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { buildReferenceContext } from "./context";
 import { TOOL_INSTRUCTIONS } from "./tools";
+import { listFiles, readFileContent } from "./virtualDisk";
 
 const SKILLS_DIR = path.join(process.cwd(), "skills");
 
@@ -11,6 +12,9 @@ const SKILLS_DIR = path.join(process.cwd(), "skills");
  * birleştirir. Bu sayede hangi API/model çağrılırsa çağrılsın, agent
  * hem tasarım/backend disiplinini korur hem de projenin tamamını ve
  * kullanıcının yüklediği dosyaları "görerek" karar verir.
+ *
+ * Ayrıca sanal diskteki `_skills/` klasörüne kullanıcı tarafından
+ * yüklenen .md skill dosyaları da otomatik olarak sistem promptuna eklenir.
  */
 export function buildSystemPrompt(sessionId: string): string {
   let skillsText = "";
@@ -21,6 +25,22 @@ export function buildSystemPrompt(sessionId: string): string {
       .join("\n\n---\n\n");
   } catch {
     skillsText = "";
+  }
+
+  // Kullanıcının yüklediği özel skill'ler
+  try {
+    const uploadedSkills = listFiles(sessionId)
+      .filter((f) => f.path.startsWith("_skills/") && f.path.toLowerCase().endsWith(".md"));
+    if (uploadedSkills.length > 0) {
+      const userSkillsText = uploadedSkills
+        .map((f) => readFileContent(sessionId, f.path))
+        .join("\n\n---\n\n");
+      skillsText = skillsText
+        ? `${skillsText}\n\n---\n\n${userSkillsText}`
+        : userSkillsText;
+    }
+  } catch {
+    // disk okuma hatası: sessizce atla
   }
 
   const referenceContext = buildReferenceContext(sessionId);

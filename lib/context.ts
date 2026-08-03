@@ -39,10 +39,12 @@ export function buildReferenceContext(sessionId: string): string {
   for (const file of files) {
     const ext = path.extname(file.path).toLowerCase();
     const isUpload = file.path.startsWith("_uploads/");
+    const isSkill = file.path.startsWith("_skills/");
     const tag = isUpload ? "uploaded-file" : "existing-file";
 
-    if (!READABLE_EXT.has(ext) || file.size > 60_000 || total >= MAX_TOTAL_CHARS) {
-      skipped.push(`${file.path} (${file.size} bayt)`);
+    // Skill'ler sistem promptuna zaten ekleniyor, burada tekrar okuma
+    if (isSkill || !READABLE_EXT.has(ext) || file.size > 60_000 || total >= MAX_TOTAL_CHARS) {
+      if (!isSkill) skipped.push(`${file.path} (${file.size} bayt)`);
       continue;
     }
 

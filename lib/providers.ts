@@ -52,7 +52,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "anthropic",
     label: "Anthropic",
-    model: "claude-sonnet-4-6",
+    model: "claude-sonnet-4-20250514",
     color: "#D9A06B",
     endpoint: "https://api.anthropic.com/v1/messages",
     supportsVision: true,
@@ -86,7 +86,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "google",
     label: "Google Gemini",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     color: "#8AB4F8",
     endpoint: "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}",
     supportsVision: true,
@@ -142,7 +142,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "xai",
     label: "xAI Grok",
-    model: "grok-4",
+    model: "grok-4-0709",
     color: "#E6E6E6",
     endpoint: "https://api.x.ai/v1/chat/completions",
     supportsVision: true,
@@ -254,7 +254,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "openrouter",
     label: "OpenRouter",
-    model: "anthropic/claude-3.5-sonnet",
+    model: "anthropic/claude-sonnet-4",
     color: "#9B8BFF",
     endpoint: "https://openrouter.ai/api/v1/chat/completions",
     supportsVision: true,
