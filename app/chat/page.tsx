@@ -22,7 +22,8 @@ export default function ChatPage() {
   const { sessionId, diskTree, setDiskTree, activeProvider, apiKeys } = useAetherStore();
   const [keyModalProvider, setKeyModalProvider] = useState<string | null>(null);
   const [terminalOpen, setTerminalOpen] = useState(false);
-  const [editorFile, setEditorFile] = useState<string | null>(null);
+  const [openFiles, setOpenFiles] = useState<string[]>([]);
+  const [activeFile, setActiveFile] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [liveFile, setLiveFile] = useState<string | null>(null);
   const [showMemory, setShowMemory] = useState(false);
@@ -49,12 +50,27 @@ export default function ChatPage() {
   }
 
   function handleOpenFile(path: string, mode: "edit" | "preview" | "live") {
-    setEditorFile(null);
     setPreviewFile(null);
     setLiveFile(null);
-    if (mode === "edit") setEditorFile(path);
-    else if (mode === "preview") setPreviewFile(path);
-    else if (mode === "live") setLiveFile(path);
+    if (mode === "edit") {
+      setOpenFiles((prev) => (prev.includes(path) ? prev : [...prev, path]));
+      setActiveFile(path);
+    } else if (mode === "preview") {
+      setPreviewFile(path);
+    } else if (mode === "live") {
+      setLiveFile(path);
+    }
+  }
+
+  function handleCloseTab(path: string) {
+    setOpenFiles((prev) => {
+      const idx = prev.indexOf(path);
+      const next = prev.filter((p) => p !== path);
+      if (path === activeFile) {
+        setActiveFile(next.length > 0 ? next[Math.min(idx, next.length - 1)] : null);
+      }
+      return next;
+    });
   }
 
   return (
@@ -93,8 +109,10 @@ export default function ChatPage() {
             <ChatWindow onDiskChanged={refreshDisk} onOpenLivePreview={handleOpenFile} />
             <CodeEditor
               sessionId={sessionId}
-              filePath={editorFile}
-              onClose={() => setEditorFile(null)}
+              openFiles={openFiles}
+              activeFile={activeFile}
+              onCloseTab={handleCloseTab}
+              onSwitchTab={setActiveFile}
               onSaved={refreshDisk}
             />
             <FilePreview
@@ -119,7 +137,7 @@ export default function ChatPage() {
             />
           )}
         </div>
-        <DiskExplorer tree={diskTree} onReset={handleReset} onOpenFile={handleOpenFile} />
+        <DiskExplorer tree={diskTree} onReset={handleReset} onOpenFile={handleOpenFile} activePath={activeFile} />
       </div>
 
       <ApiKeyModal providerId={keyModalProvider} onClose={() => setKeyModalProvider(null)} />
