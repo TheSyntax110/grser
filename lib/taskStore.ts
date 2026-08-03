@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import { AgentTask, TaskStatus } from "./agents/types";
 
 export interface TaskRecord {
@@ -23,7 +23,8 @@ export async function saveTasks(
   requestId: string,
   tasks: AgentTask[]
 ): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured()) return;
+  const supabase = getSupabase();
   await supabase.from("agent_tasks").delete().eq("session_id", sessionId).eq("request_id", requestId);
   if (tasks.length === 0) return;
   const rows = tasks.map((t) => ({
@@ -48,14 +49,14 @@ export async function updateTask(
   index: number,
   updates: Partial<AgentTask>
 ): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured()) return;
   const dbUpdates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (updates.status) dbUpdates.status = updates.status;
   if (updates.resultSummary !== undefined) dbUpdates.result_summary = updates.resultSummary;
   if (updates.confidence !== undefined) dbUpdates.confidence = updates.confidence;
   if (updates.filesProduced) dbUpdates.files_produced = updates.filesProduced;
   if (updates.error !== undefined) dbUpdates.error = updates.error;
-  await supabase
+  await getSupabase()
     .from("agent_tasks")
     .update(dbUpdates)
     .eq("session_id", sessionId)
@@ -64,8 +65,8 @@ export async function updateTask(
 }
 
 export async function getTasks(sessionId: string, requestId?: string): Promise<TaskRecord[]> {
-  if (!isSupabaseConfigured) return [];
-  let query = supabase.from("agent_tasks").select("*").eq("session_id", sessionId);
+  if (!isSupabaseConfigured()) return [];
+  let query = getSupabase().from("agent_tasks").select("*").eq("session_id", sessionId);
   if (requestId) query = query.eq("request_id", requestId);
   const { data, error } = await query.order("index", { ascending: true });
   if (error) return [];

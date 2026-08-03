@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 
 export interface DocChunk {
   id: string;
@@ -53,7 +53,8 @@ export async function indexDocument(
   text: string,
   openaiApiKey?: string
 ): Promise<number> {
-  if (!isSupabaseConfigured || !text.trim()) return 0;
+  if (!isSupabaseConfigured() || !text.trim()) return 0;
+  const supabase = getSupabase();
   await supabase.from("document_embeddings").delete().eq("session_id", sessionId).eq("file_path", filePath);
   const chunks = chunkText(text);
   if (chunks.length === 0) return 0;
@@ -78,7 +79,8 @@ export async function retrieveRelevantChunks(
   limit = 5,
   openaiApiKey?: string
 ): Promise<DocChunk[]> {
-  if (!isSupabaseConfigured || !query.trim()) return [];
+  if (!isSupabaseConfigured() || !query.trim()) return [];
+  const supabase = getSupabase();
   const embedding = await embed(query, openaiApiKey);
   if (embedding) {
     const { data, error } = await supabase.rpc("match_documents", {

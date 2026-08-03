@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 
 export interface MemoryEntry {
   id: string;
@@ -17,8 +17,8 @@ export async function addMemory(
   category = "general",
   importance = 5
 ): Promise<MemoryEntry | null> {
-  if (!isSupabaseConfigured || !content.trim()) return null;
-  const { data, error } = await supabase
+  if (!isSupabaseConfigured() || !content.trim()) return null;
+  const { data, error } = await getSupabase()
     .from("agent_memory")
     .insert({ session_id: sessionId, content: content.trim(), category, importance })
     .select()
@@ -28,8 +28,8 @@ export async function addMemory(
 }
 
 export async function getMemories(sessionId: string, limit = 20): Promise<MemoryEntry[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
+  if (!isSupabaseConfigured()) return [];
+  const { data, error } = await getSupabase()
     .from("agent_memory")
     .select("*")
     .eq("session_id", sessionId)
@@ -41,8 +41,8 @@ export async function getMemories(sessionId: string, limit = 20): Promise<Memory
 }
 
 export async function searchMemories(sessionId: string, query: string, limit = 8): Promise<MemoryEntry[]> {
-  if (!isSupabaseConfigured || !query.trim()) return [];
-  const { data, error } = await supabase
+  if (!isSupabaseConfigured() || !query.trim()) return [];
+  const { data, error } = await getSupabase()
     .from("agent_memory")
     .select("*")
     .eq("session_id", sessionId)
@@ -54,19 +54,20 @@ export async function searchMemories(sessionId: string, query: string, limit = 8
 }
 
 export async function deleteMemory(id: string): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
-  const { error } = await supabase.from("agent_memory").delete().eq("id", id);
+  if (!isSupabaseConfigured()) return false;
+  const { error } = await getSupabase().from("agent_memory").delete().eq("id", id);
   return !error;
 }
 
 export async function clearSessionMemories(sessionId: string): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
-  const { error } = await supabase.from("agent_memory").delete().eq("session_id", sessionId);
+  if (!isSupabaseConfigured()) return false;
+  const { error } = await getSupabase().from("agent_memory").delete().eq("session_id", sessionId);
   return !error;
 }
 
 export async function pruneMemories(sessionId: string): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured()) return;
+  const supabase = getSupabase();
   const { count } = await supabase
     .from("agent_memory")
     .select("*", { count: "exact", head: true })

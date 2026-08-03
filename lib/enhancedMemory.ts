@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabaseClient";
+import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 
 export interface EnhancedMemory {
   id: string;
@@ -48,9 +48,9 @@ export async function addEnhancedMemory(
   } = {},
   openaiApiKey?: string
 ): Promise<EnhancedMemory | null> {
-  if (!isSupabaseConfigured || !content.trim()) return null;
+  if (!isSupabaseConfigured() || !content.trim()) return null;
   const embedding = await embed(content, openaiApiKey);
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("agent_memory_v2")
     .insert({
       session_id: sessionId,
@@ -73,8 +73,8 @@ export async function getEnhancedMemories(
   sessionId: string,
   limit = 20
 ): Promise<EnhancedMemory[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
+  if (!isSupabaseConfigured()) return [];
+  const { data, error } = await getSupabase()
     .from("agent_memory_v2")
     .select("*")
     .eq("session_id", sessionId)
@@ -91,7 +91,8 @@ export async function searchEnhancedMemories(
   limit = 10,
   openaiApiKey?: string
 ): Promise<EnhancedMemory[]> {
-  if (!isSupabaseConfigured || !query.trim()) return [];
+  if (!isSupabaseConfigured() || !query.trim()) return [];
+  const supabase = getSupabase();
 
   const embedding = await embed(query, openaiApiKey);
   if (embedding) {
@@ -134,14 +135,14 @@ export async function searchEnhancedMemories(
 }
 
 export async function deleteEnhancedMemory(id: string): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
-  const { error } = await supabase.from("agent_memory_v2").delete().eq("id", id);
+  if (!isSupabaseConfigured()) return false;
+  const { error } = await getSupabase().from("agent_memory_v2").delete().eq("id", id);
   return !error;
 }
 
 export async function clearEnhancedSessionMemories(sessionId: string): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
-  const { error } = await supabase.from("agent_memory_v2").delete().eq("session_id", sessionId);
+  if (!isSupabaseConfigured()) return false;
+  const { error } = await getSupabase().from("agent_memory_v2").delete().eq("session_id", sessionId);
   return !error;
 }
 
@@ -171,7 +172,8 @@ export function rankMemories(
 }
 
 export async function pruneEnhancedMemories(sessionId: string): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured()) return;
+  const supabase = getSupabase();
   const { count } = await supabase
     .from("agent_memory_v2")
     .select("*", { count: "exact", head: true })
