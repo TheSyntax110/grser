@@ -239,25 +239,30 @@ export default function LivePreview({ sessionId, filePath, onClose, providerId, 
               <div className="flex h-full items-center justify-center text-sm text-signal">
                 {error}
               </div>
-            ) : loading ? (
-              <div className="flex h-full items-center justify-center">
-                <Loader2 size={20} className="animate-spin text-mist" />
-              </div>
-            ) : previewUrl ? (
-              <iframe
-                ref={iframeRef}
-                key={key}
-                src={previewUrl}
-                title="Live Preview"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
-                className="h-full w-full border-0"
-                onLoad={() => setLoading(false)}
-                onError={() => {
-                  setLoading(false);
-                  setError("Önizleme yüklenemedi.");
-                }}
-              />
-            ) : null}
+            ) : (
+              <>
+                {previewUrl && (
+                  <iframe
+                    ref={iframeRef}
+                    key={key}
+                    src={previewUrl}
+                    title="Live Preview"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
+                    className="h-full w-full border-0"
+                    onLoad={() => setLoading(false)}
+                    onError={() => {
+                      setLoading(false);
+                      setError("Önizleme yüklenemedi.");
+                    }}
+                  />
+                )}
+                {loading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white">
+                    <Loader2 size={20} className="animate-spin text-mist" />
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </motion.div>
       )}
